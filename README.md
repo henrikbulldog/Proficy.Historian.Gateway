@@ -2,19 +2,20 @@
 Websocket gateway to GE Proficy Historian
 
 # Running the Application from the Command Line
-Simply run Proficy.Historian.Gateway.Service.exe
-
+Simply run 
+```
+Proficy.Historian.Gateway.Service.exe
+```
 # Installing the Service
 To install the application as a Windows service:
-
+```
 Proficy.Historian.Gateway.Service.exe install -servicename "Proficy.Historian.Gateway.Service" -displayname "Proficy Historian Gateway Service" -description "Websocket gateway to GE Proficy Historian"
-
+```
 # Uninstalling the Service
 To uninstall the Windows service:
-
+```
 Proficy.Historian.Gateway.Service.exe uninstall 
-
-
+```
 ## Configuration
 Create or edit config.json in the executable folder with this content:
 ```json
