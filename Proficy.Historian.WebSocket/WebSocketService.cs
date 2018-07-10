@@ -14,10 +14,10 @@ namespace Proficy.Historian.WebSocket
         private readonly WebSocketServer _server;
         private List<IWebSocketConnection> allSockets = new List<IWebSocketConnection>();
 
-        public WebSocketService(string address)
+        public WebSocketService(WebSocketServiceConfiguration config)
         {
-            Console.WriteLine($"Creating server at {address}");
-            _server = new WebSocketServer(address);
+            Console.WriteLine($"Creating server at {config.Address}");
+            _server = new WebSocketServer(config.Address);
         }
 
         public IService Start()

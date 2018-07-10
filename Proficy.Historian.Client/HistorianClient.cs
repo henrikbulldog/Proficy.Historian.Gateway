@@ -14,30 +14,15 @@ namespace Proficy.Historian.Client
     {
         private Dictionary<string, string> _messageProperties = new Dictionary<string, string>();
         private ServerConnection _historian;
-        private ProficyHistorianConfiguration _config;
+        private HistorianClientConfiguration _config;
         private IPublisher _publisher;
 
-        public HistorianClient(IPublisher publisher)
+        public HistorianClient(IPublisher publisher, HistorianClientConfiguration config)
         {
             _publisher = publisher;
-
-            Console.WriteLine("GE Proficy Listener initializing...");
-
-            try
-            {
-                string configurationString = System.Text.Encoding.UTF8.GetString(File.ReadAllBytes("historian-config.json"));
-                _config = JsonConvert.DeserializeObject<ProficyHistorianConfiguration>(configurationString);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("GE Proficy Listener not initialized - error: " + ex.Message);
-                Stop();
-            }
-
+            _config = config;
             _messageProperties.Add("source", "GE Proficy Listener");
             _messageProperties.Add("name", "data");
-
-            Console.WriteLine("GE Proficy Listener initialized.");
         }
 
         public IService Start()
@@ -77,11 +62,8 @@ namespace Proficy.Historian.Client
             var message = new SensorData(TagName, TagValue, TagDateTime.ToString("yyyy-MM-dd HH:mm:ss"), TagQuality);
             _publisher.SendMessage(message);
 
-            if (_config.PrintToConsole)
-            {
-                Console.WriteLine("GE Proficy Listener - sent: "
-                    + JsonConvert.SerializeObject(message, Formatting.None));
-            }
+            Console.WriteLine("GE Proficy Listener - sent: "
+                + JsonConvert.SerializeObject(message, Formatting.None));
         }
 
         public IService Stop()
@@ -103,42 +85,5 @@ namespace Proficy.Historian.Client
             Console.WriteLine("GE Proficy Listener closed.");
             return this;
         }
-    }
-
-    public class MessageWrap
-    {
-        public string name = "Historian";
-        public SensorData[] content = new SensorData[1];
-    }
-
-    public class SensorData
-    {
-        public string t;
-        public string v;
-        public string dt;
-        public string q;
-
-        public SensorData(string TagName, string TagValue, string TagDateTime, string TagQuality)
-        {
-            this.t = TagName;
-            this.v = TagValue;
-            this.dt = TagDateTime;
-            this.q = TagQuality;
-        }
-    }
-
-    public class ProficyHistorianConfiguration
-    {
-        public string ServerName;
-        public string UserName;
-        public string Password;
-        public bool PrintToConsole = false;
-        public IList<ProficyHistorianTag> TagsToSubscribe;
-    }
-
-    public class ProficyHistorianTag
-    {
-        public string TagName;
-        public int MinimumElapsedMilliSeconds = 1000;
     }
 }

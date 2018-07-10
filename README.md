@@ -16,18 +16,23 @@ Proficy.Historian.Gateway..exe uninstall
 
 
 ## Configuration
-Create a file named historian-config.json in the executable folder:
+Create or edit config.json in the executable folder with this content:
 
 {
-  "ServerName": "<Historian server>",
-  "UserName": "<Windows domain user>",
-  "Password": "<Windows domain password>",
-  "PrintToConsole": True,
+  "HistorianClientConfiguration": {
+  "ServerName": "<Historian server or environment variable>",
+  "UserName": "<Windows domain user or environment variable>",
+  "Password": "<Windows domain password or environment variable>",
   "TagsToSubscribe": [
     { "TagName": "<Tag name>" },
-      "MinimumElapsedMilliSeconds": <Elapsed milliseconds, can be omitted>
+      "MinimumElapsedMilliSeconds": <Elapsed milliseconds, can be omitted, default is 1000 ms>
     }
   ]
+  },
+  "WebSocketServiceConfiguration": {
+    "Address": "<Websocket address or environment variable, for example ws://0.0.0.0:15099>"
+  }
 }
 
-
+## Connect to the service
+To test the service you can use for example the Browser WebSocket Client Chrome extension: https://chrome.google.com/webstore/detail/browser-websocket-client/mdmlhchldhfnfnkfmljgeinlffmdgkjo

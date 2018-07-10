@@ -2,6 +2,8 @@
 using Topshelf;
 using Proficy.Historian.WebSocket;
 using Proficy.Historian.Client;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace Proficy.Historian.Gateway.Service
 {
@@ -9,17 +11,20 @@ namespace Proficy.Historian.Gateway.Service
     {
         static void Main(string[] args)
         {
+            string configurationString = System.Text.Encoding.UTF8.GetString(File.ReadAllBytes("config.json"));
+            var config = JsonConvert.DeserializeObject<Config>(configurationString);
+
             var rc = HostFactory.Run(x =>
             {
                 x.Service<ServiceManager>(s =>
                 {
-                    var webSocketService = new WebSocketService("ws://0.0.0.0:15099");
+                    var webSocketService = new WebSocketService(config.WebSocketServiceConfiguration);
                     s.ConstructUsing(name => new ServiceManager()
                         .Add(webSocketService)
 #if DEBUG
                         .Add(new HistorianClientMock(webSocketService))
 #else
-                        .Add(new HistorianClient(webSocketService))
+                        .Add(new HistorianClient(webSocketService, config.HistorianClientConfiguration))
 #endif
                         );
                     s.WhenStarted(sm => sm.Start());

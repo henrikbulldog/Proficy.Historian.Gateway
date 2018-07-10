@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WebSocketServiceConfiguration.cs" />
     <Compile Include="WebSocketService.cs" />
   </ItemGroup>
   <ItemGroup>
