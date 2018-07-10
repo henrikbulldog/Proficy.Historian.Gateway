@@ -24,17 +24,18 @@ Create or edit config.json in the executable folder with this content:
   "UserName": "<Windows domain user or environment variable>",
   "Password": "<Windows domain password or environment variable>",
   "TagsToSubscribe": [
-    { "TagName": "<Tag name>" },
-      "MinimumElapsedMilliSeconds": 1000
-    }
-  ]
+		{
+		  "TagName": "<Tag name>" ,
+		  "MinimumElapsedMilliSeconds": 1000
+		}
+	]
   },
   "WebSocketServiceConfiguration": {
     "Address": "<Websocket address or environment variable, for example ws://0.0.0.0:15099>"
   }
 }
 ```
-MinimumElapsedMilliSeconds can be omitted, defauæt is 1000 ms.
+MinimumElapsedMilliSeconds can be omitted, default is 1000 ms.
 
 ## Connect to the service
 To test the service you can use for example the Browser WebSocket Client Chrome extension: https://chrome.google.com/webstore/detail/browser-websocket-client/mdmlhchldhfnfnkfmljgeinlffmdgkjo
