@@ -17,7 +17,7 @@ Proficy.Historian.Gateway..exe uninstall
 
 ## Configuration
 Create or edit config.json in the executable folder with this content:
-
+```json
 {
   "HistorianClientConfiguration": {
   "ServerName": "<Historian server or environment variable>",
@@ -33,6 +33,7 @@ Create or edit config.json in the executable folder with this content:
     "Address": "<Websocket address or environment variable, for example ws://0.0.0.0:15099>"
   }
 }
+```
 
 ## Connect to the service
 To test the service you can use for example the Browser WebSocket Client Chrome extension: https://chrome.google.com/webstore/detail/browser-websocket-client/mdmlhchldhfnfnkfmljgeinlffmdgkjo
