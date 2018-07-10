@@ -62,9 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="historian-config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="historian-config.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

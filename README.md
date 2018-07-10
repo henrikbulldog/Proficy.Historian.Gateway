@@ -1,20 +1,33 @@
-# GE Proficy Historian Listener Service
-
+# Proficy Historian Gateway
+Websocket gateway to GE Proficy Historian
 
 # Running the Application from the Command Line
-Simply run GEProficyListener.exe
+Simply run Proficy.Historian.Gateway.Service.exe
 
 # Installing the Service
 To install the application as a Windows service:
 
-GEProficyListener.exe install -servicename "GEProficyListener" -displayname "GE Proficy Listener Service" -description "Listens to GE Proficy Historian events and sends them to sinks"
+Proficy.Historian.Gateway.Service.exe install -servicename "Proficy.Historian.Gateway.ServiceClient" -displayname "GE Proficy Histoeian Gateway Service" -description "Websocket gateway to GE Proficy Historian"
 
 # Uninstalling the Service
 To uninstall the Windows service:
 
-GEProficyListener.exe uninstall 
+Proficy.Historian.Gateway..exe uninstall 
 
 
-## Application Configuration Section
+## Configuration
+Create a file named historian-config.json in the executable folder:
+
+{
+  "ServerName": "<Historian server>",
+  "UserName": "<Windows domain user>",
+  "Password": "<Windows domain password>",
+  "PrintToConsole": True,
+  "TagsToSubscribe": [
+    { "TagName": "<Tag name>" },
+      "MinimumElapsedMilliSeconds": <Elapsed milliseconds, can be omitted>
+    }
+  ]
+}
 
 
