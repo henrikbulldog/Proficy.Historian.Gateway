@@ -41,7 +41,7 @@ To subscribe or unsubscribe to tag data changed messages, send a message contain
     "Tags": [
 	{
 		"TagName": "<Tag name>" ,
-		"MinimumElapsedMilliSeconds": <Minimum elapsed milliseconds between data changed messages, can be omitted, default is 1000 ms>
+		"MinimumElapsedMilliSeconds": 1000
 	}]
   },
   "UnsubscribeMessage": {
@@ -51,3 +51,4 @@ To subscribe or unsubscribe to tag data changed messages, send a message contain
   }
 }
 ```
+MinimumElapsedMilliSeconds : Minimum elapsed milliseconds between data changed messages, can be omitted, default is 1000 ms.
