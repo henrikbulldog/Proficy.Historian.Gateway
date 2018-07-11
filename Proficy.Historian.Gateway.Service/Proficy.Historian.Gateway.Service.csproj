@@ -62,10 +62,12 @@
     <Compile Include="HistorianClientMock.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="historian-message.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -87,6 +89,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>rem copy $(TargetDir)*.* \\SORBDATDKBAL001\Install\Proficy.Historian.Gateway.Service /Y</PostBuildEvent>
+    <PostBuildEvent>copy $(TargetDir)*.* \\SORBDATDKBAL001\Install\Proficy.Historian.Gateway.Service /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

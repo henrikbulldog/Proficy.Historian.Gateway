@@ -23,19 +23,31 @@ Create or edit config.json in the executable folder with this content:
   "HistorianClientConfiguration": {
   "ServerName": "<Historian server or environment variable>",
   "UserName": "<Windows domain user or environment variable>",
-  "Password": "<Windows domain password or environment variable>",
-  "TagsToSubscribe": [
-	{
-		"TagName": "<Tag name>" ,
-		"MinimumElapsedMilliSeconds": 1000
-	}]
+  "Password": "<Windows domain password or environment variable>"
   },
   "WebSocketServiceConfiguration": {
     "Address": "<Websocket address or environment variable, for example ws://0.0.0.0:15099>"
   }
 }
 ```
-MinimumElapsedMilliSeconds can be omitted, default is 1000 ms.
-
 ## Connect to the service
 To test the service you can use for example the Browser WebSocket Client Chrome extension: https://chrome.google.com/webstore/detail/browser-websocket-client/mdmlhchldhfnfnkfmljgeinlffmdgkjo
+
+## Subscribe or Unsubscribe to Tag Data Changed Messages
+To subscribe or unsubscribe to tag data changed messages, send a message containing a historian message:
+```json
+{
+  "SubscribeMessage": {
+    "Tags": [
+	{
+		"TagName": "<Tag name>" ,
+		"MinimumElapsedMilliSeconds": <Minimum elapsed milliseconds between data changed messages, can be omitted, default is 1000 ms>
+	}]
+  },
+  "UnsubscribeMessage": {
+    "TagNames": [
+		"<Tag name>"
+	]
+  }
+}
+```

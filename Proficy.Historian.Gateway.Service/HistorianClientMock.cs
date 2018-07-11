@@ -1,4 +1,5 @@
-﻿using Proficy.Historian.Gateway.Shared;
+﻿using Newtonsoft.Json;
+using Proficy.Historian.Gateway.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +9,53 @@ using System.Threading.Tasks;
 
 namespace Proficy.Historian.Gateway.Service
 {
-    class HistorianClientMock : IService
+    class HistorianClientMock : IHistorian
     {
-        private IPublisher _publisher;
+        private List<string> _tags;
         private bool _stop = false;
+
+        public IPublisher Publisher { get; set; }
+
         public HistorianClientMock(IPublisher publisher)
         {
-            _publisher = publisher;
+            Publisher = publisher;
+            Publisher.OnMessage = (message) => Message(JsonConvert.DeserializeObject<HistorianMessage>(message));
+            _tags = new List<string>();
+        }
+
+        public void Message(HistorianMessage message)
+        {
+            if (message != null)
+            {
+                if (message.SubscribeMessage != null)
+                {
+                    foreach (var tag in message.SubscribeMessage.Tags)
+                    {
+                        _tags.Add(tag.TagName);
+                        Console.WriteLine("Proficy Historian Gateway - subscribing to " + tag.TagName);
+                    }
+                }
+                if (message.UnsubscribeMessage != null)
+                {
+                    foreach (var tagname in message.UnsubscribeMessage.Tagnames)
+                    {
+                        if (_tags.Contains(tagname))
+                        {
+                            _tags.Remove(tagname);
+                            Console.WriteLine("Proficy Historian Gateway - unsubscribing to " + tagname);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void OnMessage(string message)
+        {
+            var historianMessage = JsonConvert.DeserializeObject<HistorianMessage>(message);
+            if (historianMessage != null)
+            {
+                Message(historianMessage);
+            }
         }
 
         public IService Start()
@@ -23,8 +64,16 @@ namespace Proficy.Historian.Gateway.Service
             {
                 while (!_stop)
                 {
-                    _publisher.SendMessage($"Ping at {DateTime.Now}");
-                    Thread.Sleep(5000);
+                    if (Publisher != null)
+                    {
+                        foreach (var tag in _tags)
+                        {
+                            Publisher.SendMessage($"{tag} : {DateTime.Now}");
+                            Console.WriteLine($"{tag} : {DateTime.Now}");
+                        }
+                    }
+
+                    Thread.Sleep(1000);
                 }
             }).Start();
             return this;

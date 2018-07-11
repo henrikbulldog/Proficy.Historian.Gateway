@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WebSocketPublisher.cs" />
     <Compile Include="WebSocketServiceConfiguration.cs" />
     <Compile Include="WebSocketService.cs" />
   </ItemGroup>
@@ -58,6 +59,9 @@
       <Project>{a463314d-0d21-47e8-a5ed-971cba36ad82}</Project>
       <Name>Proficy.Historian.Gateway.Shared</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

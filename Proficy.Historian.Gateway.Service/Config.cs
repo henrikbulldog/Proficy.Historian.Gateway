@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Proficy.Historian.Gateway.Service
 {
+    /// <summary>
+    /// Application configuration
+    /// </summary>
     public class Config
     {
         public HistorianClientConfiguration HistorianClientConfiguration { get; set; }

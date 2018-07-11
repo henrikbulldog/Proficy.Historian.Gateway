@@ -6,12 +6,8 @@ using System.Threading.Tasks;
 
 namespace Proficy.Historian.Gateway.Shared
 {
-    public interface IPublisher
+    public class SubscribeMessage
     {
-        Action<string> OnMessage { get; set; }
-
-        IHistorian Historian { get; set; }
-
-        void SendMessage(object message);
+        public List<HistorianTag> Tags { get; set; }
     }
 }

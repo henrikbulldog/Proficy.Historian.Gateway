@@ -9,13 +9,15 @@ using System.Threading.Tasks;
 
 namespace Proficy.Historian.WebSocket
 {
-    public class WebSocketService : IPublisher
+    public class WebSocketService : IService
     {
         private readonly WebSocketServer _server;
-        private List<IWebSocketConnection> allSockets = new List<IWebSocketConnection>();
+        private List<WebSocketPublisher> allSockets = new List<WebSocketPublisher>();
+        private Action<IPublisher> _onOpen;
 
-        public WebSocketService(WebSocketServiceConfiguration config)
+        public WebSocketService(WebSocketServiceConfiguration config, Action<IPublisher> onOpen)
         {
+            _onOpen = onOpen;
             Console.WriteLine($"Creating server at {config.Address}");
             _server = new WebSocketServer(config.Address);
         }
@@ -28,31 +30,32 @@ namespace Proficy.Historian.WebSocket
                 socket.OnOpen = () =>
                 {
                     Console.WriteLine($"Open web socket to {socket.ConnectionInfo.Origin} on {socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort}");
-                    allSockets.Add(socket);
+                    var publisher = new WebSocketPublisher(socket);
+                    if (_onOpen != null)
+                    {
+                        _onOpen(publisher);
+                    }
+                    allSockets.Add(publisher);
                 };
                 socket.OnClose = () =>
                 {
                     Console.WriteLine($"Close web socket to {socket.ConnectionInfo.Origin} on {socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort}");
-                    allSockets.Remove(socket);
+                    var removeme = allSockets.FirstOrDefault(s => s.WebSocketConnection == socket);
+                    if(removeme != null)
+                    {
+                        removeme.Dispose();
+                        allSockets.Remove(removeme);
+                    }
                 };
-                socket.OnMessage = message => Console.WriteLine(message);
             });
             return this;
         }
 
         public IService Stop()
         {
-            Console.WriteLine("HTTP server closing.");
+            Console.WriteLine("Web socket server closing.");
             _server.Dispose();
             return this;
-        }
-
-        public void SendMessage(object message)
-        {
-            foreach (var socket in allSockets)
-            {
-                socket.Send(JsonConvert.SerializeObject(message));
-            }
         }
     }
 }

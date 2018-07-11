@@ -48,7 +48,6 @@
   <ItemGroup>
     <Compile Include="HistorianClient.cs" />
     <Compile Include="HistorianClientConfiguration.cs" />
-    <Compile Include="ProficyHistorianTag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SensorData.cs" />
   </ItemGroup>

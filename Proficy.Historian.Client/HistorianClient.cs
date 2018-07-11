@@ -3,49 +3,42 @@ using Proficy.Historian.ClientAccess.API;
 using Proficy.Historian.Gateway.Shared;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Proficy.Historian.Client
 {
-    public class HistorianClient : IService
+    public class HistorianClient : IHistorian
     {
         private Dictionary<string, string> _messageProperties = new Dictionary<string, string>();
         private ServerConnection _historian;
         private HistorianClientConfiguration _config;
-        private IPublisher _publisher;
 
+        public IPublisher Publisher { get; set; }
+        
         public HistorianClient(IPublisher publisher, HistorianClientConfiguration config)
         {
-            _publisher = publisher;
+            Publisher = publisher;
+            Publisher.OnMessage = (message) => Message(JsonConvert.DeserializeObject<HistorianMessage>(message));
             _config = config;
-            _messageProperties.Add("source", "GE Proficy Listener");
+            _messageProperties.Add("source", "Proficy Historian Gateway");
             _messageProperties.Add("name", "data");
         }
 
         public IService Start()
         {
-            Console.WriteLine("GE Proficy Listener starting up...");
+            Console.WriteLine("Proficy Historian Gateway starting up...");
             try
             {
                 _historian = new ServerConnection(new ConnectionProperties { ServerHostName = _config.ServerName, Username = _config.UserName, Password = _config.Password, ServerCertificateValidationMode = CertificateValidationMode.None });
                 _historian.Connect();
                 _historian.DataChangedEvent += new DataChangedHandler(Historian_DataChangedEvent);
-                foreach (ProficyHistorianTag tag in _config.TagsToSubscribe)
-                {
-                    _historian.IData.Subscribe(new DataSubscriptionInfo { Tagname = tag.TagName, MinimumElapsedMilliSeconds = tag.MinimumElapsedMilliSeconds });
-                    Console.WriteLine("GE Proficy Listener - subscribing to " + tag.TagName);
-                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("GE Proficy Listener - Error while initializing: " + ex.Message);
+                Console.WriteLine("Proficy Historian Gateway - Error while initializing: " + ex.Message);
                 Stop();
             }
 
-            Console.WriteLine("GE Proficy Listener started...");
+            Console.WriteLine("Proficy Historian Gateway started...");
             return this;
         }
 
@@ -60,15 +53,18 @@ namespace Proficy.Historian.Client
         public void PublishTag(string TagName, string TagValue, DateTime TagDateTime, string TagQuality)
         {
             var message = new SensorData(TagName, TagValue, TagDateTime.ToString("yyyy-MM-dd HH:mm:ss"), TagQuality);
-            _publisher.SendMessage(message);
+            if(Publisher != null)
+            {
+                Publisher.SendMessage(JsonConvert.SerializeObject(message, Formatting.None));
+            }
 
-            Console.WriteLine("GE Proficy Listener - sent: "
+            Console.WriteLine("Proficy Historian Gateway - sent: "
                 + JsonConvert.SerializeObject(message, Formatting.None));
         }
 
         public IService Stop()
         {
-            Console.WriteLine("GE Proficy Listener closing.");
+            Console.WriteLine("Proficy Historian Gateway closing.");
 
             try
             {
@@ -79,11 +75,52 @@ namespace Proficy.Historian.Client
             }
             catch (Exception ex)
             {
-                Console.WriteLine("GE Proficy Listener - error while disposing: " + ex.Message);
+                Console.WriteLine("Proficy Historian Gateway - error while disposing: " + ex.Message);
             }
 
-            Console.WriteLine("GE Proficy Listener closed.");
+            Console.WriteLine("Proficy Historian Gateway closed.");
             return this;
+        }
+ 
+        public void Message(HistorianMessage message)
+        {
+            if (message != null)
+            {
+                if (message.SubscribeMessage != null)
+                {
+                    foreach (var tag in message.SubscribeMessage.Tags)
+                    {
+                        Console.WriteLine("Proficy Historian Gateway - subscribing to " + tag.TagName);
+                        try
+                        {
+                            _historian.IData.Subscribe(new DataSubscriptionInfo
+                            {
+                                Tagname = tag.TagName,
+                                MinimumElapsedMilliSeconds = tag.MinimumElapsedMilliSeconds
+                            });
+                        }
+                        catch(Exception exc)
+                        {
+                            Console.WriteLine($"Could not subscribe to {tag.TagName}. {exc}");
+                        }
+                    }
+                }
+                if (message.UnsubscribeMessage != null)
+                {
+                    foreach (var tagname in message.UnsubscribeMessage.Tagnames)
+                    {
+                        Console.WriteLine("Proficy Historian Gateway - unsubscribing to " + tagname);
+                        try
+                        {
+                            _historian.IData.Unsubscribe(tagname);
+                        }
+                        catch (Exception exc)
+                        {
+                            Console.WriteLine($"Could not unsubscribe to {tagname}. {exc}");
+                        }
+                    }
+                }
+            }
         }
     }
 }

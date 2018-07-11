@@ -71,7 +71,5 @@ namespace Proficy.Historian.Client
                 }
             }
         }
-
-        public IList<ProficyHistorianTag> TagsToSubscribe { get; set; }
     }
 }
