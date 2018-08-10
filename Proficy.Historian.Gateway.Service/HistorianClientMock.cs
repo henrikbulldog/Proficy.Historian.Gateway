@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace Proficy.Historian.Gateway.Service
 {
@@ -25,27 +26,34 @@ namespace Proficy.Historian.Gateway.Service
 
         public void Message(HistorianMessage message)
         {
-            if (message != null)
+            try
             {
-                if (message.SubscribeMessage != null)
+                if (message != null)
                 {
-                    foreach (var tag in message.SubscribeMessage.Tags)
+                    if (message.SubscribeMessage != null)
                     {
-                        _tags.Add(tag.TagName);
-                        Console.WriteLine("Proficy Historian Gateway - subscribing to " + tag.TagName);
-                    }
-                }
-                if (message.UnsubscribeMessage != null)
-                {
-                    foreach (var tagname in message.UnsubscribeMessage.Tagnames)
-                    {
-                        if (_tags.Contains(tagname))
+                        foreach (var tag in message.SubscribeMessage.Tags)
                         {
-                            _tags.Remove(tagname);
-                            Console.WriteLine("Proficy Historian Gateway - unsubscribing to " + tagname);
+                            _tags.Add(tag.TagName);
+                            Log.Information("Proficy Historian Gateway - subscribing to " + tag.TagName);
+                        }
+                    }
+                    if (message.UnsubscribeMessage != null)
+                    {
+                        foreach (var tagname in message.UnsubscribeMessage.Tagnames)
+                        {
+                            if (_tags.Contains(tagname))
+                            {
+                                _tags.Remove(tagname);
+                                Log.Information("Proficy Historian Gateway - unsubscribing to " + tagname);
+                            }
                         }
                     }
                 }
+            }
+            catch(Exception exc)
+            {
+                Log.Error(exc, "Error recieving Historian maessage");
             }
         }
 
@@ -69,7 +77,7 @@ namespace Proficy.Historian.Gateway.Service
                         foreach (var tag in _tags)
                         {
                             Publisher.SendMessage($"{tag} : {DateTime.Now}");
-                            Console.WriteLine($"{tag} : {DateTime.Now}");
+                            Log.Information($"{tag} : {DateTime.Now}");
                         }
                     }
 

@@ -5,6 +5,7 @@ using Proficy.Historian.Client;
 using Newtonsoft.Json;
 using System.IO;
 using Proficy.Historian.Gateway.Shared;
+using Serilog;
 
 namespace Proficy.Historian.Gateway.Service
 {
@@ -30,6 +31,11 @@ namespace Proficy.Historian.Gateway.Service
 
         static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.EventLog("Proficy.Historian.Gateway", restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
+                .CreateLogger();
+
             string configurationString = System.Text.Encoding.UTF8.GetString(File.ReadAllBytes("config.json"));
             var config = JsonConvert.DeserializeObject<Config>(configurationString);
 

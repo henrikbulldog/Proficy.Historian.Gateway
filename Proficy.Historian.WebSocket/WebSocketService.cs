@@ -1,6 +1,7 @@
 ﻿using Fleck;
 using Newtonsoft.Json;
 using Proficy.Historian.Gateway.Shared;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,18 +19,18 @@ namespace Proficy.Historian.WebSocket
         public WebSocketService(WebSocketServiceConfiguration config, Action<IPublisher> onOpen)
         {
             _onOpen = onOpen;
-            Console.WriteLine($"Creating server at {config.Address}");
+            Log.Information($"Creating server at {config.Address}");
             _server = new WebSocketServer(config.Address);
         }
 
         public IService Start()
         {
-            Console.WriteLine("Web socket server starting");
+            Log.Information("Web socket server starting");
             _server.Start(socket =>
             {
                 socket.OnOpen = () =>
                 {
-                    Console.WriteLine($"Open web socket to {socket.ConnectionInfo.Origin} on {socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort}");
+                    Log.Information($"Open web socket to {socket.ConnectionInfo.Origin} on {socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort}");
                     var publisher = new WebSocketPublisher(socket);
                     if (_onOpen != null)
                     {
@@ -39,7 +40,7 @@ namespace Proficy.Historian.WebSocket
                 };
                 socket.OnClose = () =>
                 {
-                    Console.WriteLine($"Close web socket to {socket.ConnectionInfo.Origin} on {socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort}");
+                    Log.Information($"Close web socket to {socket.ConnectionInfo.Origin} on {socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort}");
                     var removeme = allSockets.FirstOrDefault(s => s.WebSocketConnection == socket);
                     if(removeme != null)
                     {
@@ -53,7 +54,7 @@ namespace Proficy.Historian.WebSocket
 
         public IService Stop()
         {
-            Console.WriteLine("Web socket server closing.");
+            Log.Information("Web socket server closing.");
             _server.Dispose();
             return this;
         }

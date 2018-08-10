@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Proficy.Historian.ClientAccess.API;
 using Proficy.Historian.Gateway.Shared;
+using Serilog;
 using System;
 using System.Collections.Generic;
 
@@ -25,7 +26,7 @@ namespace Proficy.Historian.Client
 
         public IService Start()
         {
-            Console.WriteLine("Proficy Historian Gateway starting up...");
+            Log.Information("Proficy Historian Gateway starting up...");
             try
             {
                 _historian = new ServerConnection(new ConnectionProperties { ServerHostName = _config.ServerName, Username = _config.UserName, Password = _config.Password, ServerCertificateValidationMode = CertificateValidationMode.None });
@@ -34,11 +35,11 @@ namespace Proficy.Historian.Client
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Proficy Historian Gateway - Error while initializing: " + ex.Message);
+                Log.Information("Proficy Historian Gateway - Error while initializing: " + ex.Message);
                 Stop();
             }
 
-            Console.WriteLine("Proficy Historian Gateway started...");
+            Log.Information("Proficy Historian Gateway started...");
             return this;
         }
 
@@ -58,13 +59,13 @@ namespace Proficy.Historian.Client
                 Publisher.SendMessage(JsonConvert.SerializeObject(message, Formatting.None));
             }
 
-            Console.WriteLine("Proficy Historian Gateway - sent: "
+            Log.Information("Proficy Historian Gateway - sent: "
                 + JsonConvert.SerializeObject(message, Formatting.None));
         }
 
         public IService Stop()
         {
-            Console.WriteLine("Proficy Historian Gateway closing.");
+            Log.Information("Proficy Historian Gateway closing.");
 
             try
             {
@@ -75,10 +76,10 @@ namespace Proficy.Historian.Client
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Proficy Historian Gateway - error while disposing: " + ex.Message);
+                Log.Information("Proficy Historian Gateway - error while disposing: " + ex.Message);
             }
 
-            Console.WriteLine("Proficy Historian Gateway closed.");
+            Log.Information("Proficy Historian Gateway closed.");
             return this;
         }
  
@@ -90,7 +91,7 @@ namespace Proficy.Historian.Client
                 {
                     foreach (var tag in message.SubscribeMessage.Tags)
                     {
-                        Console.WriteLine("Proficy Historian Gateway - subscribing to " + tag.TagName);
+                        Log.Information("Proficy Historian Gateway - subscribing to " + tag.TagName);
                         try
                         {
                             _historian.IData.Subscribe(new DataSubscriptionInfo
@@ -101,7 +102,7 @@ namespace Proficy.Historian.Client
                         }
                         catch(Exception exc)
                         {
-                            Console.WriteLine($"Could not subscribe to {tag.TagName}. {exc}");
+                            Log.Information($"Could not subscribe to {tag.TagName}. {exc}");
                         }
                     }
                 }
@@ -109,14 +110,14 @@ namespace Proficy.Historian.Client
                 {
                     foreach (var tagname in message.UnsubscribeMessage.Tagnames)
                     {
-                        Console.WriteLine("Proficy Historian Gateway - unsubscribing to " + tagname);
+                        Log.Information("Proficy Historian Gateway - unsubscribing to " + tagname);
                         try
                         {
                             _historian.IData.Unsubscribe(tagname);
                         }
                         catch (Exception exc)
                         {
-                            Console.WriteLine($"Could not unsubscribe to {tagname}. {exc}");
+                            Log.Information($"Could not unsubscribe to {tagname}. {exc}");
                         }
                     }
                 }
