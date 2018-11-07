@@ -4,13 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A463314D-0D21-47E8-A5ED-971CBA36AD82}</ProjectGuid>
+    <ProjectGuid>{68C42ED9-71A1-4BB7-B740-17C53BB0AEE8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Proficy.Historian.Gateway.Shared</RootNamespace>
-    <AssemblyName>Proficy.Historian.Gateway.Shared</AssemblyName>
+    <RootNamespace>Proficy.Historian.Gateway.RabbitMQ</RootNamespace>
+    <AssemblyName>Proficy.Historian.Gateway.RabbitMQ</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,6 +35,9 @@
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="RabbitMQ.Client, Version=6.0.0.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.6.0.0-pre3\lib\net451\RabbitMQ.Client.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -43,21 +48,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DomainEvent\DomainEvents.cs" />
-    <Compile Include="DomainEvent\IDomainEventHandler.cs" />
-    <Compile Include="DomainEvent\SensorDataEvent.cs" />
-    <Compile Include="Models\SensorData.cs" />
-    <Compile Include="DomainEvent\ConfigurationEvent.cs" />
-    <Compile Include="Models\HistorianMessage.cs" />
-    <Compile Include="DomainEvent\IDomainEvent.cs" />
-    <Compile Include="Interfaces\IPublisher.cs" />
-    <Compile Include="Interfaces\IHistorian.cs" />
-    <Compile Include="Service\IService.cs" />
-    <Compile Include="Models\HistorianTag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Models\SubscribeMessage.cs" />
-    <Compile Include="Models\UnsubscribeMessage.cs" />
-    <Compile Include="Service\ServiceManager.cs" />
+    <Compile Include="RabbitMQConfiguration.cs" />
+    <Compile Include="RabbitMQPublisher.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Proficy.Historian.Gateway.Shared\Proficy.Historian.Gateway.Shared.csproj">
+      <Project>{a463314d-0d21-47e8-a5ed-971cba36ad82}</Project>
+      <Name>Proficy.Historian.Gateway.Shared</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

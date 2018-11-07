@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Proficy.Historian.Gateway.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,8 @@ namespace Proficy.Historian.Client
         private string _serverName;
         private string _username;
         private string _password;
+
+        public SubscribeMessage SubscribeMessage { get; set; }
 
         public string ServerName
         {

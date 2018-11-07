@@ -1,6 +1,7 @@
 ﻿using Fleck;
 using Newtonsoft.Json;
-using Proficy.Historian.Gateway.Shared;
+using Proficy.Historian.Gateway.Interfaces;
+using Proficy.Historian.Gateway.Service;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -14,11 +15,9 @@ namespace Proficy.Historian.WebSocket
     {
         private readonly WebSocketServer _server;
         private List<WebSocketPublisher> allSockets = new List<WebSocketPublisher>();
-        private Action<IPublisher> _onOpen;
 
-        public WebSocketService(WebSocketServiceConfiguration config, Action<IPublisher> onOpen)
+        public WebSocketService(WebSocketServiceConfiguration config)
         {
-            _onOpen = onOpen;
             Log.Information($"Creating server at {config.Address}");
             _server = new WebSocketServer(config.Address);
         }
@@ -32,10 +31,6 @@ namespace Proficy.Historian.WebSocket
                 {
                     Log.Information($"Open web socket to {socket.ConnectionInfo.Origin} on {socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort}");
                     var publisher = new WebSocketPublisher(socket);
-                    if (_onOpen != null)
-                    {
-                        _onOpen(publisher);
-                    }
                     allSockets.Add(publisher);
                 };
                 socket.OnClose = () =>

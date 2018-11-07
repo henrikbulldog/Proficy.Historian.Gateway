@@ -68,13 +68,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="HistorianClientMock.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="historian-message.json">
+    <None Include="config.production.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="config.json">
@@ -87,6 +86,14 @@
       <Project>{a4992b01-9b6e-4552-b2b4-c16808476553}</Project>
       <Name>Proficy.Historian.Client</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Proficy.Historian.Gateway.Mock\Proficy.Historian.Gateway.Mock.csproj">
+      <Project>{90aa9b65-fd4c-4357-a9ab-cc3c3aed7f5a}</Project>
+      <Name>Proficy.Historian.Gateway.Mock</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Proficy.Historian.Gateway.RabbitMQ\Proficy.Historian.Gateway.RabbitMQ.csproj">
+      <Project>{68c42ed9-71a1-4bb7-b740-17c53bb0aee8}</Project>
+      <Name>Proficy.Historian.Gateway.RabbitMQ</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Proficy.Historian.Gateway.Shared\Proficy.Historian.Gateway.Shared.csproj">
       <Project>{a463314d-0d21-47e8-a5ed-971cba36ad82}</Project>
       <Name>Proficy.Historian.Gateway.Shared</Name>
@@ -98,6 +105,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetDir)*.* \\SORBDATDKBAL001\Install\Proficy.Historian.Gateway.Service /Y</PostBuildEvent>
+    <PostBuildEvent>rem copy $(TargetDir)*.* \\SORBDATDKBAL001\Install\Proficy.Historian.Gateway.Service /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

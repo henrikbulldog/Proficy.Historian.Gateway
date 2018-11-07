@@ -1,4 +1,5 @@
 ﻿using Proficy.Historian.Client;
+using Proficy.Historian.Gateway.RabbitMQ;
 using Proficy.Historian.WebSocket;
 using System;
 using System.Collections.Generic;
@@ -15,5 +16,6 @@ namespace Proficy.Historian.Gateway.Service
     {
         public HistorianClientConfiguration HistorianClientConfiguration { get; set; }
         public WebSocketServiceConfiguration WebSocketServiceConfiguration { get; set; }
+        public RabbitMQConfiguration RabbitMQConfiguration { get; set; }
     }
 }

@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Proficy.Historian.Gateway.Shared
+namespace Proficy.Historian.Gateway.DomainEvent
 {
-    public class UnsubscribeMessage
+    public interface IDomainEvent
     {
-        public List<string> Tagnames { get; set; }
     }
 }

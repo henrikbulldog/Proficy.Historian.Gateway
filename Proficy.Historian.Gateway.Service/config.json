@@ -1,10 +1,31 @@
 {
-  "HistorianClientConfiguration": {
-    "ServerName": "HISTORIANSERVER",
-    "UserName": "HISTORIANUSERNAME",
-    "Password": "HISTORIANPASSWORD"
-  },
-  "WebSocketServiceConfiguration": {
-    "Address": "ws://0.0.0.0:15099"
-  }
+    "WebSocketServiceConfiguration": {
+        "Address": "ws://0.0.0.0:15099"
+    },
+    "RabbitMQConfiguration": {
+        "Hostname": "localhost",
+        "Username": "guest",
+        "Password": "guest"
+    },
+    "HistorianClientConfiguration": {
+        "ServerName": "HISTORIANSERVER",
+        "UserName": "HISTORIANUSERNAME",
+        "Password": "HISTORIANPASSWORD",
+        "SubscribeMessage": {
+            "Tags": [
+                { "TagName": "SDMZHISDKBAL001.Ramp" },
+                { "TagName": "SDMZHISDKBAL001.Ramp_1%Noise" },
+                { "TagName": "SDMZHISDKBAL001.Ramp_20%Noise" },
+                { "TagName": "SDMZHISDKBAL001.Ramp_5%Noise" },
+                { "TagName": "SDMZHISDKBAL001.Sin" },
+                { "TagName": "SDMZHISDKBAL001.Sin_1%Noise" },
+                { "TagName": "SDMZHISDKBAL001.Sin_20%Noise" },
+                { "TagName": "SDMZHISDKBAL001.Sin_5%Noise" },
+                { "TagName": "SDMZHISDKBAL001.Step" },
+                { "TagName": "SDMZHISDKBAL001.Step_1%Noise" },
+                { "TagName": "SDMZHISDKBAL001.Step_20%Noise" },
+                { "TagName": "SDMZHISDKBAL001.Step_5%Noise" }
+            ]
+        }
+    }
 }

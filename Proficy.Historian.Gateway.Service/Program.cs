@@ -1,34 +1,17 @@
 ﻿using System;
 using Topshelf;
-using Proficy.Historian.WebSocket;
-using Proficy.Historian.Client;
 using Newtonsoft.Json;
 using System.IO;
-using Proficy.Historian.Gateway.Shared;
 using Serilog;
+using Proficy.Historian.WebSocket;
+using Proficy.Historian.Gateway.Interfaces;
+using Proficy.Historian.Gateway.DomainEvent;
+using Proficy.Historian.Gateway.RabbitMQ;
 
 namespace Proficy.Historian.Gateway.Service
 {
     class Program
     {
-        static private IHistorian _historian;
-
-        /// <summary>
-        /// Send a message to the historian to subscribe or unsuscribe to tag data changes
-        /// </summary>
-        /// <param name="message">HistorianMessage as a json object</param>
-        static void OnMessage(string message)
-        {
-            if (_historian != null)
-            {
-                var historianMessage = JsonConvert.DeserializeObject<HistorianMessage>(message);
-                if (historianMessage != null)
-                {
-                    _historian.Message(historianMessage);
-                }
-            }
-        }
-
         static void Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -38,30 +21,35 @@ namespace Proficy.Historian.Gateway.Service
 
             string configurationString = System.Text.Encoding.UTF8.GetString(File.ReadAllBytes("config.json"));
             var config = JsonConvert.DeserializeObject<Config>(configurationString);
+            IHistorian historian = null;
+#if DEBUG
+            DomainEvents.Register<SensorDataEvent>(new Mock.SensorDataHandler());
+            DomainEvents.Register<SensorDataEvent>(new RabbitMQPublisher(config.RabbitMQConfiguration));
+            historian = new Mock.HistorianClient(
+                config.HistorianClientConfiguration == null 
+                    ? null 
+                    : config.HistorianClientConfiguration.SubscribeMessage);
+#else
+            historian = new Client.HistorianClient(config.HistorianClientConfiguration));
+#endif
+            DomainEvents.Register<ConfigurationEvent>(historian);
 
             var rc = HostFactory.Run(x =>
             {
                 x.Service<IService>(service =>
                 {
-                    service.ConstructUsing(hostSettings => new WebSocketService(
-                        config.WebSocketServiceConfiguration,
-                        (publisher) =>
-                        {
-#if DEBUG
-                            publisher.Historian = new HistorianClientMock(publisher);
-#else
-                            publisher.Historian = new HistorianClient(publisher, config.HistorianClientConfiguration);
-#endif
-                            publisher.Historian.Start();
-                        }));
+                    service.ConstructUsing(hostSettings =>
+                    new ServiceManager()
+                        .Add(historian)
+                        .Add(new WebSocketService(config.WebSocketServiceConfiguration)));
                     service.WhenStarted(sm => sm.Start());
                     service.WhenStopped(sm => sm.Stop());
                 });
-                x.RunAsLocalSystem();
 
+                x.RunAsLocalSystem();
                 x.SetServiceName("Proficy.Historian.Gateway.Service");
                 x.SetDisplayName("GE Proficy Historian Gateway Service");
-                x.SetDescription("Exposes GE Proficy Historian events as a web API");
+                x.SetDescription("Exposes GE Proficy Historian events through Web Sockets");
             });
 
             var exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Proficy.Historian.Gateway.Shared
+namespace Proficy.Historian.Gateway.Models
 {
-    public class SubscribeMessage
+    public class UnsubscribeMessage
     {
-        public List<HistorianTag> Tags { get; set; }
+        public List<string> Tagnames { get; set; }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Proficy.Historian.ClientAccess.API;
-using Proficy.Historian.Gateway.Shared;
+using Proficy.Historian.Gateway.DomainEvent;
+using Proficy.Historian.Gateway.Interfaces;
+using Proficy.Historian.Gateway.Service;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -9,19 +11,16 @@ namespace Proficy.Historian.Client
 {
     public class HistorianClient : IHistorian
     {
-        private Dictionary<string, string> _messageProperties = new Dictionary<string, string>();
-        private ServerConnection _historian;
-        private HistorianClientConfiguration _config;
+        private Dictionary<string, string> messageProperties = new Dictionary<string, string>();
+        private ServerConnection historian;
+        private HistorianClientConfiguration config;
+        private Queue<SensorData> sensorDataQueue = new Queue<SensorData>();
 
-        public IPublisher Publisher { get; set; }
-        
-        public HistorianClient(IPublisher publisher, HistorianClientConfiguration config)
+        public HistorianClient(HistorianClientConfiguration config)
         {
-            Publisher = publisher;
-            Publisher.OnMessage = (message) => Message(JsonConvert.DeserializeObject<HistorianMessage>(message));
-            _config = config;
-            _messageProperties.Add("source", "Proficy Historian Gateway");
-            _messageProperties.Add("name", "data");
+            this.config = config;
+            messageProperties.Add("source", "Proficy Historian Gateway");
+            messageProperties.Add("name", "data");
         }
 
         public IService Start()
@@ -29,9 +28,15 @@ namespace Proficy.Historian.Client
             Log.Information("Proficy Historian Gateway starting up...");
             try
             {
-                _historian = new ServerConnection(new ConnectionProperties { ServerHostName = _config.ServerName, Username = _config.UserName, Password = _config.Password, ServerCertificateValidationMode = CertificateValidationMode.None });
-                _historian.Connect();
-                _historian.DataChangedEvent += new DataChangedHandler(Historian_DataChangedEvent);
+                historian = new ServerConnection(new ConnectionProperties { ServerHostName = config.ServerName, Username = config.UserName, Password = config.Password, ServerCertificateValidationMode = CertificateValidationMode.None });
+                historian.Connect();
+                historian.DataChangedEvent += new DataChangedHandler(Historian_DataChangedEvent);
+                if (config.SubscribeMessage != null)
+                {
+                    var configEvent = new ConfigurationEvent();
+                    configEvent.SubscribeMessage = config.SubscribeMessage;
+                    Handle(configEvent);
+                }
             }
             catch (Exception ex)
             {
@@ -45,22 +50,26 @@ namespace Proficy.Historian.Client
 
         public void Historian_DataChangedEvent(List<CurrentValue> values)
         {
+            var sensorData = new List<SensorData>();
+
             foreach (CurrentValue cv in values)
             {
-                PublishTag(cv.Tagname, cv.Value.ToString(), cv.Time, cv.Quality.ToString());
+                double value;
+                if (double.TryParse(cv.Value.ToString(), out value))
+                {
+                    sensorData.Add(new SensorData(cv.Tagname, value, cv.Time.ToString("yyyy-MM-dd HH:mm:ss"), cv.Quality.ToString()));
+                }
+                else
+                {
+                    Log.Error($"Tag skipped. Can only publish numeric values: {JsonConvert.SerializeObject(cv)}");
+                }
             }
-        }
 
-        public void PublishTag(string TagName, string TagValue, DateTime TagDateTime, string TagQuality)
-        {
-            var message = new SensorData(TagName, TagValue, TagDateTime.ToString("yyyy-MM-dd HH:mm:ss"), TagQuality);
-            if(Publisher != null)
+            if (sensorData.Count > 0)
             {
-                Publisher.SendMessage(JsonConvert.SerializeObject(message, Formatting.None));
+                var sensorDataEvent = new SensorDataEvent(sensorData);
+                DomainEvents.Raise(sensorDataEvent);
             }
-
-            Log.Information("Proficy Historian Gateway - sent: "
-                + JsonConvert.SerializeObject(message, Formatting.None));
         }
 
         public IService Stop()
@@ -69,10 +78,10 @@ namespace Proficy.Historian.Client
 
             try
             {
-                _historian.IData.DropSubscriptions();
-                _historian.DataChangedEvent -= Historian_DataChangedEvent;
+                historian.IData.DropSubscriptions();
+                historian.DataChangedEvent -= Historian_DataChangedEvent;
 
-                _historian.Disconnect();
+                historian.Disconnect();
             }
             catch (Exception ex)
             {
@@ -83,18 +92,19 @@ namespace Proficy.Historian.Client
             return this;
         }
  
-        public void Message(HistorianMessage message)
+        public void Handle(IDomainEvent domainEvent)
         {
-            if (message != null)
+            var configurationEvent = domainEvent as ConfigurationEvent;
+            if (configurationEvent != null)
             {
-                if (message.SubscribeMessage != null)
+                if (configurationEvent.SubscribeMessage != null)
                 {
-                    foreach (var tag in message.SubscribeMessage.Tags)
+                    foreach (var tag in configurationEvent.SubscribeMessage.Tags)
                     {
                         Log.Information("Proficy Historian Gateway - subscribing to " + tag.TagName);
                         try
                         {
-                            _historian.IData.Subscribe(new DataSubscriptionInfo
+                            historian.IData.Subscribe(new DataSubscriptionInfo
                             {
                                 Tagname = tag.TagName,
                                 MinimumElapsedMilliSeconds = tag.MinimumElapsedMilliSeconds
@@ -106,14 +116,14 @@ namespace Proficy.Historian.Client
                         }
                     }
                 }
-                if (message.UnsubscribeMessage != null)
+                if (configurationEvent.UnsubscribeMessage != null)
                 {
-                    foreach (var tagname in message.UnsubscribeMessage.Tagnames)
+                    foreach (var tagname in configurationEvent.UnsubscribeMessage.Tagnames)
                     {
                         Log.Information("Proficy Historian Gateway - unsubscribing to " + tagname);
                         try
                         {
-                            _historian.IData.Unsubscribe(tagname);
+                            historian.IData.Unsubscribe(tagname);
                         }
                         catch (Exception exc)
                         {

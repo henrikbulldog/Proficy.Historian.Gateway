@@ -17,6 +17,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proficy.Historian.Gateway.Mock", "Proficy.Historian.Gateway.Mock\Proficy.Historian.Gateway.Mock.csproj", "{90AA9B65-FD4C-4357-A9AB-CC3C3AED7F5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proficy.Historian.Gateway.RabbitMQ", "Proficy.Historian.Gateway.RabbitMQ\Proficy.Historian.Gateway.RabbitMQ.csproj", "{68C42ED9-71A1-4BB7-B740-17C53BB0AEE8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{E1994DF5-7632-487F-AE3B-C918552326BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1994DF5-7632-487F-AE3B-C918552326BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1994DF5-7632-487F-AE3B-C918552326BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90AA9B65-FD4C-4357-A9AB-CC3C3AED7F5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90AA9B65-FD4C-4357-A9AB-CC3C3AED7F5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90AA9B65-FD4C-4357-A9AB-CC3C3AED7F5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90AA9B65-FD4C-4357-A9AB-CC3C3AED7F5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68C42ED9-71A1-4BB7-B740-17C53BB0AEE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68C42ED9-71A1-4BB7-B740-17C53BB0AEE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68C42ED9-71A1-4BB7-B740-17C53BB0AEE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68C42ED9-71A1-4BB7-B740-17C53BB0AEE8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

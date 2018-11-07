@@ -2,13 +2,10 @@
 using Proficy.Historian.Gateway.Shared;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Serilog;
 
-namespace Proficy.Historian.Gateway.Service
+namespace Proficy.Historian.Gateway.Mock
 {
     class HistorianClientMock : IHistorian
     {
