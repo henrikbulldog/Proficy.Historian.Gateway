@@ -8,24 +8,33 @@ namespace Proficy.Historian.Gateway.DomainEvent
 {
     public static class DomainEvents
     {
-        private static Dictionary<Type, List<IDomainEventHandler>> handlers = new Dictionary<Type, List<IDomainEventHandler>>();
+        private static Dictionary<Type, List<object>> handlers = new Dictionary<Type, List<object>>();
 
-        public static void Register<T>(IDomainEventHandler eventHandler)
+        public static void Register<T>(IDomainEventHandler<T> eventHandler)
             where T : IDomainEvent
         {
-            if(!handlers.ContainsKey(typeof(T)))
+            lock (handlers)
             {
-                handlers.Add(typeof(T), new List<IDomainEventHandler>());
+                if (!handlers.ContainsKey(typeof(T)))
+                {
+                    handlers.Add(typeof(T), new List<object>());
+                }
+                handlers[typeof(T)].Add(eventHandler);
             }
-            handlers[typeof(T)].Add(eventHandler);
         }
 
         public static void Raise<T>(T domainEvent)
             where T : IDomainEvent
         {
-            foreach (var handler in handlers[domainEvent.GetType()])
+            lock (handlers)
             {
-                handler.Handle(domainEvent);
+                if (handlers.ContainsKey(typeof(T)))
+                {
+                    foreach (IDomainEventHandler<T> handler in handlers[typeof(T)])
+                    {
+                        Task.Run(() => handler.Handle(domainEvent));
+                    }
+                }
             }
         }
     }

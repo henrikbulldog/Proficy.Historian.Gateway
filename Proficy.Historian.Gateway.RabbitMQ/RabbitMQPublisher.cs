@@ -1,48 +1,90 @@
 ﻿using Newtonsoft.Json;
 using Proficy.Historian.Gateway.DomainEvent;
-using Proficy.Historian.Gateway.Interfaces;
+using Proficy.Historian.Gateway.Service;
 using RabbitMQ.Client;
+using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Proficy.Historian.Gateway.RabbitMQ
 {
-    public class RabbitMQPublisher : IDomainEventHandler
+    public class RabbitMQPublisher : IService, IDomainEventHandler<SensorDataEvent>
     {
-        private RabbitMQConfiguration config;
+        private string hostname;
+        private string username;
+        private string password;
+        private string queue;
+        private IConnection connection;
+        private IModel channel;
 
-        public RabbitMQPublisher(RabbitMQConfiguration config)
+        public RabbitMQPublisher(
+            string hostname,
+            string username,
+            string password,
+            string queue)
         {
-            this.config = config;
+            this.hostname = hostname;
+            this.username = username;
+            this.password = password;
+            this.queue = queue;
         }
 
-        public void Handle(IDomainEvent domainEvent)
+        public void Handle(SensorDataEvent sensorDataEvent)
         {
-            var factory = new ConnectionFactory()
+            try
             {
-                HostName = config.Hostname,
-                UserName = config.Username,
-                Password = config.Password
-            };
-            using (var connection = factory.CreateConnection())
-            using (var channel = connection.CreateModel())
-            {
-                channel.QueueDeclare(queue: "SensorDataEvent",
-                                     durable: true,
-                                     exclusive: false,
-                                     autoDelete: false,
-                                     arguments: null);
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sensorDataEvent));
 
-                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(domainEvent));
-
-                channel.BasicPublish(exchange: "",
-                                     routingKey: "SensorDataEvent",
-                                     basicProperties: null,
-                                     body: body);
+                if (channel != null)
+                {
+                    channel.BasicPublish(exchange: "",
+                                         routingKey: queue,
+                                         basicProperties: null,
+                                         body: body);
+                }
             }
+            catch (Exception exc)
+            {
+                Log.Error($"Could not send to queue {queue}. {JsonConvert.SerializeObject(sensorDataEvent)}. {exc}.");
+            }
+        }
+
+        public bool Start()
+        {
+            try
+            {
+                var factory = new ConnectionFactory()
+                {
+                    HostName = hostname,
+                    UserName = username,
+                    Password = password,
+                    NetworkRecoveryInterval = new TimeSpan(0, 0, 0, 5),
+                    AutomaticRecoveryEnabled = true
+                };
+                connection = factory.CreateConnection();
+                channel = connection.CreateModel();
+                channel.QueueDeclare(queue: queue,
+                                             durable: true,
+                                             exclusive: false,
+                                             autoDelete: false,
+                                             arguments: null);
+                Log.Information("RabbitMQ publisher started...");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"RabbitMQ publisher - Error while connecting to {hostname}:  {ex}");
+            }
+
+            return true;
+        }
+
+        public bool Stop()
+        {
+            if (connection != null)
+            {
+                connection.Close();
+            }
+            return true;
         }
     }
 }

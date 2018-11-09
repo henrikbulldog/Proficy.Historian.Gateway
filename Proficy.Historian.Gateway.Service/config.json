@@ -5,7 +5,8 @@
     "RabbitMQConfiguration": {
         "Hostname": "localhost",
         "Username": "guest",
-        "Password": "guest"
+        "Password": "guest",
+        "Queue": "SensorDataEvent"
     },
     "HistorianClientConfiguration": {
         "ServerName": "HISTORIANSERVER",

@@ -9,6 +9,6 @@ namespace Proficy.Historian.Gateway.Models
     public class HistorianTag
     {
         public string TagName;
-        public int MinimumElapsedMilliSeconds = 1000;
+        public int? MinimumElapsedMilliSeconds;
     }
 }

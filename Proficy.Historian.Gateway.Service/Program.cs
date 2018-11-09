@@ -1,12 +1,13 @@
-﻿using System;
-using Topshelf;
-using Newtonsoft.Json;
-using System.IO;
-using Serilog;
-using Proficy.Historian.WebSocket;
-using Proficy.Historian.Gateway.Interfaces;
+﻿using Newtonsoft.Json;
 using Proficy.Historian.Gateway.DomainEvent;
+using Proficy.Historian.Gateway.Interfaces;
 using Proficy.Historian.Gateway.RabbitMQ;
+using Proficy.Historian.WebSocket;
+using Serilog;
+using Serilog.Formatting.Json;
+using System;
+using System.IO;
+using Topshelf;
 
 namespace Proficy.Historian.Gateway.Service
 {
@@ -14,46 +15,61 @@ namespace Proficy.Historian.Gateway.Service
     {
         static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()
-                .WriteTo.EventLog("Proficy.Historian.Gateway", restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
-                .CreateLogger();
-
-            string configurationString = System.Text.Encoding.UTF8.GetString(File.ReadAllBytes("config.json"));
-            var config = JsonConvert.DeserializeObject<Config>(configurationString);
-            IHistorian historian = null;
-#if DEBUG
-            DomainEvents.Register<SensorDataEvent>(new Mock.SensorDataHandler());
-            DomainEvents.Register<SensorDataEvent>(new RabbitMQPublisher(config.RabbitMQConfiguration));
-            historian = new Mock.HistorianClient(
-                config.HistorianClientConfiguration == null 
-                    ? null 
-                    : config.HistorianClientConfiguration.SubscribeMessage);
-#else
-            historian = new Client.HistorianClient(config.HistorianClientConfiguration));
-#endif
-            DomainEvents.Register<ConfigurationEvent>(historian);
-
             var rc = HostFactory.Run(x =>
             {
-                x.Service<IService>(service =>
-                {
-                    service.ConstructUsing(hostSettings =>
-                    new ServiceManager()
-                        .Add(historian)
-                        .Add(new WebSocketService(config.WebSocketServiceConfiguration)));
-                    service.WhenStarted(sm => sm.Start());
-                    service.WhenStopped(sm => sm.Stop());
-                });
-
                 x.RunAsLocalSystem();
                 x.SetServiceName("Proficy.Historian.Gateway.Service");
                 x.SetDisplayName("GE Proficy Historian Gateway Service");
-                x.SetDescription("Exposes GE Proficy Historian events through Web Sockets");
+                x.SetDescription("Forwards GE Proficy Historian data changed events through Web Sockets and a RabbitMQ queue");
+
+                x.Service<ServiceManager>(service =>
+                {
+                    service.ConstructUsing(hostSettings => new ServiceManager());
+                    service.WhenStarted(sm => OnStart(sm));
+                    service.WhenStopped(sm => sm.Stop());
+                });
             });
 
             var exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
             Environment.ExitCode = exitCode;
+        }
+
+        private static bool OnStart(ServiceManager serviceManager)
+        {
+            var config = Config.FromFile();
+
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.RollingFile(new JsonFormatter(), "log-{Date}.txt", retainedFileCountLimit: 30)
+                .CreateLogger();
+
+            IHistorian historian = null;
+#if DEBUG
+            historian = new Mock.HistorianClientMock(
+                config.HistorianClientConfiguration == null
+                    ? null
+                    : config.HistorianClientConfiguration.SubscribeMessage);
+#else
+            historian = new Client.HistorianClient(config.HistorianClientConfiguration);
+#endif
+            DomainEvents.Register(historian);
+
+            var rabbitMQPublisher = new RabbitMQPublisher(
+                        config.RabbitMQConfiguration.Hostname,
+                        config.RabbitMQConfiguration.Username,
+                        config.RabbitMQConfiguration.Password,
+                        config.RabbitMQConfiguration.Queue);
+            DomainEvents.Register(rabbitMQPublisher);
+#if DEBUG
+            DomainEvents.Register(new Mock.SensorDataLogger());
+#endif
+            DomainEvents.Register(new ConfigurationPersister());
+
+            return serviceManager
+                .Add(rabbitMQPublisher)
+                .Add(new WebSocketService(config.WebSocketServiceConfiguration))
+                .Add(historian)
+                .Start();
         }
     }
 }

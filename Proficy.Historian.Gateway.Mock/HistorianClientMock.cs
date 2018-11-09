@@ -1,7 +1,6 @@
 ﻿using Proficy.Historian.Gateway.DomainEvent;
 using Proficy.Historian.Gateway.Interfaces;
 using Proficy.Historian.Gateway.Models;
-using Proficy.Historian.Gateway.Service;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -10,23 +9,22 @@ using System.Threading;
 
 namespace Proficy.Historian.Gateway.Mock
 {
-    public class HistorianClient : IHistorian
+    public class HistorianClientMock : IHistorian
     {
         private List<string> tags;
         private bool stop = false;
 
-        public HistorianClient(SubscribeMessage subscribeMessage = null)
+        public HistorianClientMock(SubscribeMessage subscribeMessage = null)
         {
             tags = new List<string>();
-            if(subscribeMessage != null)
+            if (subscribeMessage != null)
             {
                 tags.AddRange(subscribeMessage.Tags.Select(t => t.TagName));
             }
         }
 
-        public void Handle(IDomainEvent domainEvent)
+        public void Handle(ConfigurationEvent configurationEvent)
         {
-            var configurationEvent = domainEvent as ConfigurationEvent;
             try
             {
                 if (configurationEvent != null)
@@ -58,33 +56,34 @@ namespace Proficy.Historian.Gateway.Mock
             }
         }
 
-        public IService Start()
+        public bool Start()
         {
-            new Thread(delegate ()
+            while (!stop)
             {
-                while (!stop)
+                var data = new List<SensorData>();
+                foreach (var tag in tags)
                 {
-                    var data = new List<SensorData>();
-                    foreach (var tag in tags)
-                    {
-                        data.Add(new SensorData(
-                            tag,
-                            DateTime.Now.Ticks,
-                            DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                            "Good"));
-                    }
-                    var sensorDataEvent = new SensorDataEvent(data);
-                    DomainEvents.Raise(sensorDataEvent);
-                    Thread.Sleep(2000);
+                    data.Add(new SensorData(
+                        tag,
+                        DateTime.Now.Ticks,
+                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                        "Good"));
                 }
-            }).Start();
-            return this;
+                var sensorDataEvent = new SensorDataEvent(data);
+                DomainEvents.Raise(sensorDataEvent);
+                Thread.Sleep(1000);
+            }
+
+            return true;
         }
 
-        public IService Stop()
+        public bool Stop()
         {
-            stop = true;
-            return this;
+            lock (this)
+            {
+                stop = true;
+            }
+            return true;
         }
     }
 }

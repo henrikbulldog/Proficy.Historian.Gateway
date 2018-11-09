@@ -48,9 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HistorianClient.cs" />
+    <Compile Include="HistorianClientMock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SensorDataHandler.cs" />
+    <Compile Include="SensorDataLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -1,6 +1,7 @@
 # Proficy Historian Gateway
-Websocket gateway to GE Proficy Historian.
+Gateway to GE Proficy Historian.
 This service works as a gateway between a historian running in an OT network and exposes tag data changed events as web socket messages to applications running in an IT network.
+GET Proficy Historian data changed events are forwarded to web socket clients and a RabbitMQ queue.
 
 # Running the Application from the Command Line
 Simply run 

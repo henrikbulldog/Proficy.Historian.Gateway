@@ -2,7 +2,6 @@
 using Proficy.Historian.ClientAccess.API;
 using Proficy.Historian.Gateway.DomainEvent;
 using Proficy.Historian.Gateway.Interfaces;
-using Proficy.Historian.Gateway.Service;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -23,11 +22,12 @@ namespace Proficy.Historian.Client
             messageProperties.Add("name", "data");
         }
 
-        public IService Start()
+        public bool Start()
         {
             Log.Information("Proficy Historian Gateway starting up...");
             try
             {
+                Log.Information($"Proficy Historian Gateway connecting to {config.ServerName} ...");
                 historian = new ServerConnection(new ConnectionProperties { ServerHostName = config.ServerName, Username = config.UserName, Password = config.Password, ServerCertificateValidationMode = CertificateValidationMode.None });
                 historian.Connect();
                 historian.DataChangedEvent += new DataChangedHandler(Historian_DataChangedEvent);
@@ -37,15 +37,15 @@ namespace Proficy.Historian.Client
                     configEvent.SubscribeMessage = config.SubscribeMessage;
                     Handle(configEvent);
                 }
+                Log.Information("Proficy Historian client started...");
             }
             catch (Exception ex)
             {
-                Log.Information("Proficy Historian Gateway - Error while initializing: " + ex.Message);
-                Stop();
+                Log.Error("Proficy Historian client - Error while initializing: " + ex.Message);
+                return false;
             }
 
-            Log.Information("Proficy Historian Gateway started...");
-            return this;
+            return true;
         }
 
         public void Historian_DataChangedEvent(List<CurrentValue> values)
@@ -57,7 +57,7 @@ namespace Proficy.Historian.Client
                 double value;
                 if (double.TryParse(cv.Value.ToString(), out value))
                 {
-                    sensorData.Add(new SensorData(cv.Tagname, value, cv.Time.ToString("yyyy-MM-dd HH:mm:ss"), cv.Quality.ToString()));
+                    sensorData.Add(new SensorData(cv.Tagname, value, cv.Time.ToString("yyyy-MM-dd HH:mm:ss"), cv.Quality.Status.ToString()));
                 }
                 else
                 {
@@ -72,7 +72,7 @@ namespace Proficy.Historian.Client
             }
         }
 
-        public IService Stop()
+        public bool Stop()
         {
             Log.Information("Proficy Historian Gateway closing.");
 
@@ -89,12 +89,11 @@ namespace Proficy.Historian.Client
             }
 
             Log.Information("Proficy Historian Gateway closed.");
-            return this;
+            return true;
         }
- 
-        public void Handle(IDomainEvent domainEvent)
+
+        public void Handle(ConfigurationEvent configurationEvent)
         {
-            var configurationEvent = domainEvent as ConfigurationEvent;
             if (configurationEvent != null)
             {
                 if (configurationEvent.SubscribeMessage != null)
@@ -107,15 +106,16 @@ namespace Proficy.Historian.Client
                             historian.IData.Subscribe(new DataSubscriptionInfo
                             {
                                 Tagname = tag.TagName,
-                                MinimumElapsedMilliSeconds = tag.MinimumElapsedMilliSeconds
+                                MinimumElapsedMilliSeconds = tag.MinimumElapsedMilliSeconds.HasValue ? tag.MinimumElapsedMilliSeconds.Value : 0
                             });
                         }
-                        catch(Exception exc)
+                        catch (Exception exc)
                         {
                             Log.Information($"Could not subscribe to {tag.TagName}. {exc}");
                         }
                     }
                 }
+
                 if (configurationEvent.UnsubscribeMessage != null)
                 {
                     foreach (var tagname in configurationEvent.UnsubscribeMessage.Tagnames)

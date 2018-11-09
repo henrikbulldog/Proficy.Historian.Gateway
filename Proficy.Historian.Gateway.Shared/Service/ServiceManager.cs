@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Proficy.Historian.Gateway.Service
@@ -22,22 +19,27 @@ namespace Proficy.Historian.Gateway.Service
             return this;
         }
 
-        public IService Start()
-        {
-            foreach(var service in services)
-            {
-                service.Start();
-            }
-            return this;
-        }
-
-        public IService Stop()
+        public bool Start()
         {
             foreach (var service in services)
             {
-                service.Stop();
+                Task.Run(() => service.Start());
             }
-            return this;
+            return true;
+        }
+
+        public bool Stop()
+        {
+            var r = true;
+            foreach (var service in services)
+            {
+                if (!service.Stop())
+                {
+                    r = false;
+
+                }
+            }
+            return r;
         }
     }
 }

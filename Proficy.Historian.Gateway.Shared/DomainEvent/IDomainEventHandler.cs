@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Proficy.Historian.Gateway.DomainEvent
 {
-    public interface IDomainEventHandler
+    public interface IDomainEventHandler<T>
+        where T: IDomainEvent
     {
-        void Handle(IDomainEvent domainEvent);
+        void Handle(T domainEvent);
     }
 }

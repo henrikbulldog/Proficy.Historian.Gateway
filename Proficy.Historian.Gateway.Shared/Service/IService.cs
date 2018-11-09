@@ -8,7 +8,7 @@ namespace Proficy.Historian.Gateway.Service
 {
     public interface IService
     {
-        IService Start();
-        IService Stop();
+        bool Start();
+        bool Stop();
     }
 }

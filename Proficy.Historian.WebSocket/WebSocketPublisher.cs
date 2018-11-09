@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Proficy.Historian.WebSocket
 {
-    public class WebSocketPublisher : IDisposable, IDomainEventHandler
+    public class WebSocketPublisher : IDisposable, IDomainEventHandler<SensorDataEvent>
     {
         public IWebSocketConnection WebSocketConnection { get; set; }
 
@@ -19,15 +19,15 @@ namespace Proficy.Historian.WebSocket
             WebSocketConnection = webSocketConnection;
             WebSocketConnection.OnMessage = (message) =>
             {
-                var e = JsonConvert.DeserializeObject<ConfigurationEvent>(message);
-                DomainEvents.Raise(e);
+                var configurationEvent = JsonConvert.DeserializeObject<ConfigurationEvent>(message);
+                DomainEvents.Raise(configurationEvent);
             };
-            DomainEvents.Register<SensorDataEvent>(this);
+            DomainEvents.Register(this);
         }
 
-        public void Handle(IDomainEvent domainEvent)
+        public void Handle(SensorDataEvent sensorDataEvent)
         {
-            WebSocketConnection.Send(JsonConvert.SerializeObject(domainEvent));
+            WebSocketConnection.Send(JsonConvert.SerializeObject(sensorDataEvent));
         }
 
         public void Dispose()
