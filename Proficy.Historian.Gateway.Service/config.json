@@ -6,7 +6,8 @@
         "Hostname": "localhost",
         "Username": "guest",
         "Password": "guest",
-        "Queue": "SensorDataEvent"
+        "SensorDataEventQueue": "SensorDataEvent",
+        "ConfigurationEventQueue": "ConfigurationEvent"
     },
     "HistorianClientConfiguration": {
         "ServerName": "HISTORIANSERVER",

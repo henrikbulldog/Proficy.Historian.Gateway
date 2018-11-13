@@ -66,7 +66,7 @@ namespace Proficy.Historian.Gateway.Mock
                     data.Add(new SensorData(
                         tag,
                         DateTime.Now.Ticks,
-                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                        new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                         "Good"));
                 }
                 var sensorDataEvent = new SensorDataEvent(data);

@@ -11,10 +11,10 @@ namespace Proficy.Historian.Gateway.DomainEvent
     {
         public string Tagname;
         public double Value;
-        public string Time;
+        public long Time;
         public string Quality;
 
-        public SensorData(string TagName, double TagValue, string TagDateTime, string TagQuality)
+        public SensorData(string TagName, double TagValue, long TagDateTime, string TagQuality)
         {
             this.Tagname = TagName;
             this.Value = TagValue;

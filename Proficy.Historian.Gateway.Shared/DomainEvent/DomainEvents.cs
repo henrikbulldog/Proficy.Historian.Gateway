@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Proficy.Historian.Gateway.DomainEvent
@@ -20,6 +18,18 @@ namespace Proficy.Historian.Gateway.DomainEvent
                     handlers.Add(typeof(T), new List<object>());
                 }
                 handlers[typeof(T)].Add(eventHandler);
+            }
+        }
+
+        public static void Deregister<T>(IDomainEventHandler<T> eventHandler)
+            where T : IDomainEvent
+        {
+            lock (handlers)
+            {
+                if (handlers.ContainsKey(typeof(T)) && handlers[typeof(T)].Contains(eventHandler))
+                {
+                    handlers[typeof(T)].Remove(eventHandler);
+                }
             }
         }
 

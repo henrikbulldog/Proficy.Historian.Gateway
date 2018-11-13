@@ -57,7 +57,7 @@ namespace Proficy.Historian.Client
                 double value;
                 if (double.TryParse(cv.Value.ToString(), out value))
                 {
-                    sensorData.Add(new SensorData(cv.Tagname, value, cv.Time.ToString("yyyy-MM-dd HH:mm:ss"), cv.Quality.Status.ToString()));
+                    sensorData.Add(new SensorData(cv.Tagname, value, new DateTimeOffset(cv.Time).ToUnixTimeMilliseconds(), cv.Quality.Status.ToString()));
                 }
                 else
                 {

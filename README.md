@@ -27,30 +27,47 @@ Create or edit config.json in the executable folder with this content:
   "UserName": "<Windows domain user or environment variable>",
   "Password": "<Windows domain password or environment variable>"
   },
+   "RabbitMQConfiguration": {
+        "Hostname": "<RabbitMQ server or environment variable>",
+        "Username": "<RabbitMQ user name or environment variable>",
+        "Password": "<RabbitMQ password or environment variable>",
+        "SensorDataEventQueue": "<Name of the queue that holds sensor data messages or environment variable>",
+        "ConfigurationEventQueue": "<Name of the queue that holds configuration messages or environment variable>"
+    },
   "WebSocketServiceConfiguration": {
     "Address": "<Websocket address or environment variable, for example ws://0.0.0.0:15099>"
   }
 }
 ```
-## Connect to the service
-To test the service you can use for example the Browser WebSocket Client Chrome extension: https://chrome.google.com/webstore/detail/browser-websocket-client/mdmlhchldhfnfnkfmljgeinlffmdgkjo
-
-## Subscribe or Unsubscribe to Tag Data Changed Messages
-To subscribe or unsubscribe to tag data changed messages, send a message containing a historian message:
+## Change which tags are subscribed to
+You can change which tag data event subscribtion by sending this message from the web socket client, or adding it to the configuration event queue:
 ```json
 {
-  "SubscribeMessage": {
-    "Tags": [
-	{
-		"TagName": "<Tag name>" ,
-		"MinimumElapsedMilliSeconds": 1000
-	}]
-  },
-  "UnsubscribeMessage": {
-    "TagNames": [
-		"<Tag name>"
-	]
-  }
+    "SubscribeMessage": {
+        "Tags": [
+            { 
+                "TagName": "<Tag name to subscribe to>",
+                "MinimumElapsedMilliSeconds": <The minimum number of milliseconds between successive updates. Used to throttle high frequency tags.>
+            }
+        ]
+    },
+    "UnsubscribeMessage": {
+        "Tagnames": [
+            "<Tag name to unsubscribe>"
+            ]
+    }
 }
 ```
-MinimumElapsedMilliSeconds : Minimum elapsed milliseconds between data changed messages, can be omitted, default is 1000 ms.
+## Sensor data message format
+```json
+{
+    "SensorData": [
+        {
+            "Tagname": "<Tag name>",
+            "Value": <data point value>,
+            "Time": <unix date time (milliseconds since January 1st 1970)>,
+            "Quality": "<ata quality, i.e. Good>"
+        }
+    ]
+}
+```

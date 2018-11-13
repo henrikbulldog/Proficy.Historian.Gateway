@@ -22,12 +22,17 @@ namespace Proficy.Historian.WebSocket
                 var configurationEvent = JsonConvert.DeserializeObject<ConfigurationEvent>(message);
                 DomainEvents.Raise(configurationEvent);
             };
+            WebSocketConnection.OnClose = () => DomainEvents.Deregister(this);
             DomainEvents.Register(this);
+
         }
 
         public void Handle(SensorDataEvent sensorDataEvent)
         {
-            WebSocketConnection.Send(JsonConvert.SerializeObject(sensorDataEvent));
+            if (WebSocketConnection.IsAvailable)
+            {
+                WebSocketConnection.Send(JsonConvert.SerializeObject(sensorDataEvent));
+            }
         }
 
         public void Dispose()

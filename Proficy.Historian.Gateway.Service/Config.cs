@@ -25,7 +25,7 @@ namespace Proficy.Historian.Gateway.Service
 
         public static Config FromFile(string filename = "config.json", bool replaceEnvironmentVariables = true)
         {
-            string configurationString = System.Text.Encoding.UTF8.GetString(File.ReadAllBytes(filename));
+            string configurationString = File.ReadAllText(filename);
             if(string.IsNullOrEmpty(configurationString))
             {
                 return new Config();

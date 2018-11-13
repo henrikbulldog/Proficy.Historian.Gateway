@@ -40,7 +40,7 @@ namespace Proficy.Historian.Gateway.Service
 
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
-                .WriteTo.RollingFile(new JsonFormatter(), "log-{Date}.txt", retainedFileCountLimit: 30)
+                .WriteTo.RollingFile(new JsonFormatter(), "log-{Date}.txt", retainedFileCountLimit: 30, fileSizeLimitBytes: 10000)
                 .CreateLogger();
 
             IHistorian historian = null;
@@ -58,7 +58,7 @@ namespace Proficy.Historian.Gateway.Service
                         config.RabbitMQConfiguration.Hostname,
                         config.RabbitMQConfiguration.Username,
                         config.RabbitMQConfiguration.Password,
-                        config.RabbitMQConfiguration.Queue);
+                        config.RabbitMQConfiguration.SensorDataEventQueue);
             DomainEvents.Register(rabbitMQPublisher);
 #if DEBUG
             DomainEvents.Register(new Mock.SensorDataLogger());
@@ -67,6 +67,10 @@ namespace Proficy.Historian.Gateway.Service
 
             return serviceManager
                 .Add(rabbitMQPublisher)
+                .Add(new RabbitMQListener(config.RabbitMQConfiguration.Hostname,
+                        config.RabbitMQConfiguration.Username,
+                        config.RabbitMQConfiguration.Password,
+                        config.RabbitMQConfiguration.ConfigurationEventQueue))
                 .Add(new WebSocketService(config.WebSocketServiceConfiguration))
                 .Add(historian)
                 .Start();
